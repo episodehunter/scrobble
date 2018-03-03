@@ -1,21 +1,42 @@
-import { connect, Connection, entities } from '@episodehunter/datastore';
-import { APIGatewayEvent, Context, Callback } from 'aws-lambda';
-import * as assertRequiredConfig from 'assert-env';
+import { guard, Logger } from '@episodehunter/kingsguard'
+import { APIGatewayEvent } from 'aws-lambda'
+import {
+  plexPlaybackEventParse,
+  plexMediaTypeParse,
+  plexEpisodeParse
+} from './parse.util'
+import { OK_RESPONSE } from './response'
 
-assertRequiredConfig([
-  'EH_DB_HOST',
-  'EH_DB_PORT',
-  'EH_DB_USERNAME',
-  'EH_DB_PASSWORD',
-  'EH_DB_DATABASE',
-  'EH_RAVEN_DSN',
-  'EH_RAVEN_PROJECT'
-]);
+export const plex = guard<APIGatewayEvent>(
+  (event: APIGatewayEvent, logger: Logger) => {
+    logger.log('Going to scrobbler plex')
+    const payload = event.body
+    const username = event.queryStringParameters.username
+    const apiKey = event.queryStringParameters.key
+    logger.log(`Username: ${username}. Apikey: ${apiKey}`)
 
-export async function plex(event: APIGatewayEvent, context: Context, callback: Callback) {
-  const message = event.body;
+    const eventType = plexPlaybackEventParse(payload)
 
-  console.log(`Will do something with ${message}`);
+    if (eventType !== 'media.scrobble') {
+      logger.log(`Do not support event type ${eventType} yet. Exit`)
+      return OK_RESPONSE
+    }
 
-  callback(undefined, true);
-}
+    const mediaType = plexMediaTypeParse(payload)
+
+    if (mediaType !== 'episode') {
+      logger.log(`Do not support media type ${mediaType} yet. Exit`)
+      return OK_RESPONSE
+    }
+
+    const episodeInfo = plexEpisodeParse(payload)
+
+    return {
+      statusCode: '200',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(episodeInfo)
+    }
+  }
+)

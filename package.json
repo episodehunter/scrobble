@@ -4,14 +4,16 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "start": "tsc -w",
-    "test": "jest --watch"
+    "start": "tsc -w"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/episodehunter/scrobble.git"
   },
-  "keywords": ["episodehunter", "scrobble"],
+  "keywords": [
+    "episodehunter",
+    "scrobble"
+  ],
   "bugs": {
     "url": "https://github.com/episodehunter/scrobble/issues"
   },
@@ -19,27 +21,14 @@
   "author": "tjoskar <kontakta@oskarkarlsson.nu>",
   "license": "MIT",
   "devDependencies": {
-    "@types/aws-lambda": "0.0.16",
-    "@types/node": "^8.0.33",
-    "jest": "^21.1.0",
-    "ts-jest": "^21.0.1",
-    "typescript": "^2.5.3"
+    "@types/aws-lambda": "0.0.33",
+    "typescript": "^2.7.2"
   },
   "dependencies": {
-    "@episodehunter/datastore": "^1.0.10",
-    "@episodehunter/logger": "^1.0.0",
-    "assert-env": "^0.6.0",
-    "aws-sdk": "^2.122.0"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.(j|t)sx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-    },
-    "testRegex": "src/.*(__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "json"]
+    "@episodehunter/kingsguard": "^2.0.0"
   },
   "prettier": {
     "singleQuote": true,
-    "printWidth": 110
+    "semi": false
   }
 }

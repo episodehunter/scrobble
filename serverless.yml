@@ -23,4 +23,6 @@ functions:
   plex:
     handler: dist/handler.plex
     events:
-      - http: POST plex
+      - http:
+          path: plex
+          method: post
