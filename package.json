@@ -25,7 +25,10 @@
     "typescript": "^2.7.2"
   },
   "dependencies": {
-    "@episodehunter/kingsguard": "^2.0.0"
+    "@episodehunter/kingsguard": "^2.0.0",
+    "aws-lambda-multipart-parser": "^0.1.1",
+    "aws-sdk": "^2.205.0",
+    "graphql-request": "^1.5.1"
   },
   "prettier": {
     "singleQuote": true,

@@ -1,33 +1,14 @@
-type PlexPlaybackEvent =
-  | 'media.play'
-  | 'media.pause'
-  | 'media.resume'
-  | 'media.stop'
-  | 'media.scrobble'
-  | 'media.rate'
-type PlexMediaType = 'movie' | 'track' | 'episode'
-type MediaProvider = 'thetvdb' | 'imdb'
+import { MediaProvider } from './types'
 
-export function plexPlaybackEventParse(
-  payload: string
-): PlexPlaybackEvent | null {
-  const match = /"event": "(.+)",/g.exec(payload)
-  if (match) {
-    return match[1] as PlexPlaybackEvent
-  }
-  return null
+export interface EpisodeInformation {
+  provider: MediaProvider
+  id: number
+  season: number
+  episode: number
 }
 
-export function plexMediaTypeParse(payload: string): PlexMediaType | null {
-  const match = /"type": "(.+)",/g.exec(payload)
-  if (match) {
-    return match[1] as PlexMediaType
-  }
-  return null
-}
-
-export function plexEpisodeParse(payload: string) {
-  const match = /"guid": "com\.plexapp\.agents\.(.+):\/\/([a-zA-Z0-9]+)\/(\d+)\/(\d+).+",/g.exec(
+export function plexEpisodeParse(payload: string): EpisodeInformation | null {
+  const match = /com\.plexapp\.agents\.(.+):\/\/([a-zA-Z0-9]+)\/(\d+)\/(\d+).+/g.exec(
     payload
   )
   if (match) {

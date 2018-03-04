@@ -1,10 +1,24 @@
-const handler = require('./dist/handler');
+process.env.ADD_SHOW_FUNCTION = 'mock-add-show'
+process.env.EH_RED_KEEP_URL = 'http://localhost:4000/graphql'
+process.env.EH_RED_KEEP_TOKEN = 'no-token'
+process.env.EH_RAVEN_DSN = 'some-raven-dns'
+process.env.EH_RAVEN_PROJECT = 'some-raven-project'
 
-const data = {
-  key: 'value'
-};
+const handler = require('./dist/handler')
 
-const event = { body: JSON.stringify(data) };
-const callback = (error, result) => console.log(error, result);
+const username = 'tjoskar'
+const apikey = 'myapi'
+const episodeInfo = {
+  id: 260450,
+  episode: 5,
+  season: 2
+}
 
-handler.plex(event, null, callback);
+handler
+  .scrobbleEpisode(username, apikey, episodeInfo)
+  .then(result => {
+    console.log('We have a result', result)
+  })
+  .catch(error => {
+    console.error(error)
+  })
