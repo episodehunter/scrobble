@@ -8,6 +8,7 @@ provider:
   runtime: nodejs6.10
   stage: prod
   region: us-east-1
+  timeout: 60
   versionFunctions: false
   environment: ${file(env.yml):${self:custom.stage}}
   iamRoleStatements:
