@@ -1,4 +1,4 @@
-import { MediaProvider } from './types'
+import { MediaProvider, KodiEpisodeEvent, KodiMovieEvent } from './types'
 
 export interface EpisodeInformation {
   provider: MediaProvider
@@ -20,4 +20,18 @@ export function plexEpisodeParse(payload: string): EpisodeInformation | null {
     }
   }
   return null
+}
+
+export function isKodiEpisode(
+  event: KodiEpisodeEvent | KodiMovieEvent
+): event is KodiEpisodeEvent {
+  return event.mediaType === 'episode'
+}
+
+export function parseJson(jsonStr: string) {
+  try {
+    return JSON.parse(jsonStr)
+  } catch (error) {
+    return null
+  }
 }

@@ -1,85 +1,21 @@
 import { guard, Logger, assertRequiredConfig } from '@episodehunter/kingsguard'
 import { APIGatewayEvent } from 'aws-lambda'
-import * as AWS from 'aws-sdk'
 import { parse } from 'aws-lambda-multipart-parser'
-import { createUnauthorizedOkResponse, createOkResponse } from './response'
-import { PlexEvent } from './types'
-import { plexEpisodeParse, EpisodeInformation } from './parse.util'
-import { redKeep } from './red-keep.util'
-import { UnauthorizedError, UnableToAddShowError } from './custom-error'
-
-AWS.config.update({
-  region: 'us-east-1'
-})
-
-const lambda = new AWS.Lambda()
+import {
+  createUnauthorizedOkResponse,
+  createOkResponse,
+  createBadRequestResponse
+} from './response'
+import { PlexEvent, KodiEpisodeEvent, KodiMovieEvent } from './types'
+import { plexEpisodeParse, parseJson, isKodiEpisode } from './parse.util'
+import { UnauthorizedError } from './custom-error'
+import { scrobbleEpisode } from './scrobbler.util'
 
 assertRequiredConfig(
   'ADD_SHOW_FUNCTION',
   'EH_RED_KEEP_URL',
   'EH_RED_KEEP_TOKEN'
 )
-
-function getUserId(username: string, apikey: string) {
-  return redKeep.findUserId({ apikey, username }).then(userId => {
-    if (!userId) {
-      throw new UnauthorizedError('Can not find user with given credentials')
-    }
-    return userId
-  })
-}
-
-function createShow(theTvDbId: number): Promise<number> {
-  return lambda
-    .invoke({
-      FunctionName: process.env.ADD_SHOW_FUNCTION,
-      Payload: JSON.stringify({ theTvDbId })
-    })
-    .promise()
-    .catch(error => {
-      return Promise.reject(
-        new UnableToAddShowError('UnableToAddShowError', error)
-      )
-    })
-    .then(result => {
-      const id = Number(result.Payload)
-      if (!id) {
-        throw new UnableToAddShowError(`Id is falsy: '${result}'`)
-      }
-      return id
-    })
-}
-
-function getShowId(theTvDbId: number) {
-  return redKeep.findShowId(theTvDbId).then(showId => {
-    if (!showId) {
-      return createShow(theTvDbId)
-    }
-    return showId
-  })
-}
-
-export function scrobbleEpisode(
-  username: string,
-  apikey: string,
-  episodeInfo: EpisodeInformation
-) {
-  return getUserId(username, apikey)
-    .then(userId =>
-      getShowId(episodeInfo.id).then(showId => ({
-        userId,
-        showId
-      }))
-    )
-    .then(({ userId, showId }) =>
-      redKeep.scrobbleEpisode({
-        episode: episodeInfo.episode,
-        season: episodeInfo.season,
-        showId,
-        userId
-      })
-    )
-}
 
 export const plex = guard<APIGatewayEvent>(
   (event: APIGatewayEvent, logger: Logger) => {
@@ -126,6 +62,60 @@ export const plex = guard<APIGatewayEvent>(
     }
 
     return scrobbleEpisode(username, apikey, episodeInfo)
+      .then(() => createOkResponse('OK'))
+      .catch(error => {
+        if (error instanceof UnauthorizedError) {
+          return Promise.resolve(createUnauthorizedOkResponse(error.message))
+        }
+        return Promise.reject(error)
+      })
+  }
+)
+
+export const kodi = guard<APIGatewayEvent>(
+  (rawEvent: APIGatewayEvent, logger: Logger) => {
+    const event: KodiEpisodeEvent | KodiMovieEvent = parseJson(rawEvent.body)
+    if (!event) {
+      logger.captureBreadcrumb({
+        message: 'Unable to parse json',
+        data: rawEvent.body as any,
+        category: 'parse'
+      })
+      logger.captureException(new Error('Unable to parse json'))
+      return createBadRequestResponse('Unable to parse body')
+    }
+
+    if (!isKodiEpisode(event)) {
+      return createOkResponse(`Do not support movies yet. Exit`)
+    }
+
+    logger.log(`
+      Going to scrobbler for kodi.
+      Username: ${event.username}
+      Apikey: ${event.apikey}
+      id: ${event.tvdbId}
+      season: ${event.season}
+      episode: ${event.episode}
+    `)
+
+    if (event.eventType !== 'scrobble') {
+      return createOkResponse(
+        `Do not support event type ${event.eventType} yet. Exit`
+      )
+    }
+
+    if (!event.tvdbId || !event.episode || !event.season) {
+      return createOkResponse(
+        `Sorry, I do not accept special episodes at the moment`
+      )
+    }
+
+    return scrobbleEpisode(event.username, event.apikey, {
+      episode: event.episode,
+      season: event.season,
+      id: Number(event.tvdbId),
+      provider: 'thetvdb'
+    })
       .then(() => createOkResponse('OK'))
       .catch(error => {
         if (error instanceof UnauthorizedError) {
