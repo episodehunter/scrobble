@@ -11,7 +11,9 @@ const lambda = new AWS.Lambda()
 
 function getUserId(username: string, apikey: string) {
   if (!username || !apikey) {
-    throw new UnauthorizedError('You must provide both username and apikey')
+    return Promise.reject(
+      new UnauthorizedError('You must provide both username and apikey')
+    )
   }
   return redKeep.findUserId({ apikey, username }).then(userId => {
     if (!userId) {
