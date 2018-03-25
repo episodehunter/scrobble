@@ -33,3 +33,9 @@ functions:
       - http:
           path: plex
           method: post
+  kodi:
+    handler: dist/handler.kodi
+    events:
+      - http:
+          path: kodi
+          method: post
