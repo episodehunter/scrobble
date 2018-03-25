@@ -93,27 +93,27 @@ export const kodi = guard<APIGatewayEvent>(
       Going to scrobbler for kodi.
       Username: ${event.username}
       Apikey: ${event.apikey}
-      id: ${event.tvdbId}
+      id: ${event.tvdb_id}
       season: ${event.season}
       episode: ${event.episode}
     `)
 
-    if (event.eventType !== 'scrobble') {
+    if (event.event_type !== 'scrobble') {
       return createOkResponse(
-        `Do not support event type ${event.eventType} yet. Exit`
+        `Do not support event type ${event.event_type} yet. Exit`
       )
     }
 
-    if (!event.tvdbId || !event.episode || !event.season) {
+    if (!event.tvdb_id || !event.episode || !event.season) {
       return createOkResponse(
         `Sorry, episodehunter do not accept special episodes at the moment`
       )
     }
 
     return scrobbleEpisode(event.username, event.apikey, {
-      episode: event.episode,
-      season: event.season,
-      id: Number(event.tvdbId),
+      episode: Number(event.episode),
+      season: Number(event.season),
+      id: Number(event.tvdb_id),
       provider: 'thetvdb'
     })
       .then(() => createOkResponse('OK'))

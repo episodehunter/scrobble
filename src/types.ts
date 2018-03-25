@@ -17,28 +17,25 @@ export interface PlexEvent {
 }
 
 export interface KodiEvent {
-  username: string,
-  apikey: string,
-  duration: number,
-  percent: number,
-  timestamp: number,
-  eventType: 'stop' | 'scrobble' | 'play',
-  mediaType: 'episode' | 'movie'
+  username: string
+  apikey: string
+  duration: number
+  percent: number
+  timestamp: number
+  event_type: 'stop' | 'scrobble' | 'play'
+  media_type: 'episode' | 'movie'
 }
 
 export interface KodiEpisodeEvent extends KodiEvent {
-  tvdbId: string,
-  title: string,
-  year: number,
-  season: number,
-  episode: number,
-  duration: number,
-  percent: number,
-  timestamp: number,
+  tvdb_id: string | number
+  title: string
+  year: number | string
+  season: number | string
+  episode: number | string
 }
 
 export interface KodiMovieEvent extends KodiEvent {
-  originalTitle: string,
-  year: number,
-  imdbId: string,
+  original_title: string
+  year: number | string
+  themoviedb_id: number | string
 }

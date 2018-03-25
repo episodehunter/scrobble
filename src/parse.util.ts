@@ -25,7 +25,7 @@ export function plexEpisodeParse(payload: string): EpisodeInformation | null {
 export function isKodiEpisode(
   event: KodiEpisodeEvent | KodiMovieEvent
 ): event is KodiEpisodeEvent {
-  return event.mediaType === 'episode'
+  return event.media_type === 'episode'
 }
 
 export function parseJson(jsonStr: string) {
