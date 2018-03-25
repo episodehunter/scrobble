@@ -57,7 +57,7 @@ export const plex = guard<APIGatewayEvent>(
 
     if (!episodeInfo.episode || !episodeInfo.season) {
       return createOkResponse(
-        `Sorry, I do not accept special episodes at the moment`
+        `Sorry, episodehunter do not accept special episodes at the moment`
       )
     }
 
@@ -106,7 +106,7 @@ export const kodi = guard<APIGatewayEvent>(
 
     if (!event.tvdbId || !event.episode || !event.season) {
       return createOkResponse(
-        `Sorry, I do not accept special episodes at the moment`
+        `Sorry, episodehunter do not accept special episodes at the moment`
       )
     }
 
