@@ -1,4 +1,4 @@
-import { guard, Logger, assertRequiredConfig } from '@episodehunter/kingsguard'
+import { guard, assertRequiredConfig } from '@episodehunter/kingsguard'
 import { APIGatewayEvent } from 'aws-lambda'
 import { parse } from 'aws-lambda-multipart-parser'
 import {
@@ -14,19 +14,18 @@ import { scrobbleEpisode } from './scrobbler.util'
 assertRequiredConfig(
   'ADD_SHOW_FUNCTION',
   'EH_RED_KEEP_URL',
-  'EH_RED_KEEP_TOKEN'
+  'EH_RED_KEEP_API_KEY'
 )
 
-export const plex = guard<APIGatewayEvent>(
-  (event: APIGatewayEvent, logger: Logger) => {
-    const username = event.queryStringParameters.username
-    const apikey = event.queryStringParameters.key
-    const payload: PlexEvent = JSON.parse(parse(event, true).payload)
-    const eventType = payload.event
-    const mediaType = payload.Metadata.type
-    const episodeInfo = plexEpisodeParse(payload.Metadata.guid)
+export const plex = guard<APIGatewayEvent>((event, logger, context) => {
+  const username = event.queryStringParameters.username
+  const apikey = event.queryStringParameters.key
+  const payload: PlexEvent = JSON.parse(parse(event, true).payload)
+  const eventType = payload.event
+  const mediaType = payload.Metadata.type
+  const episodeInfo = plexEpisodeParse(payload.Metadata.guid)
 
-    logger.log(`
+  logger.log(`
       Going to scrobbler for plex.
       Username: ${username}
       Apikey: ${apikey}
@@ -38,58 +37,61 @@ export const plex = guard<APIGatewayEvent>(
       episode: ${episodeInfo && episodeInfo.episode}
     `)
 
-    if (eventType !== 'media.scrobble') {
-      return createOkResponse(
-        `Do not support event type ${eventType} yet. Exit`
-      )
-    }
-
-    if (mediaType !== 'episode') {
-      return createOkResponse(
-        `Do not support media type ${mediaType} yet. Exit`
-      )
-    }
-
-    if (!episodeInfo) {
-      logger.captureException(new Error('episodeInfo is null'))
-      return createOkResponse(`Was not able to parse episode information`)
-    }
-
-    if (!episodeInfo.episode || !episodeInfo.season) {
-      return createOkResponse(
-        `Sorry, episodehunter do not accept special episodes at the moment`
-      )
-    }
-
-    return scrobbleEpisode(username, apikey, episodeInfo)
-      .then(() => createOkResponse('OK'))
-      .catch(error => {
-        if (error instanceof UnauthorizedError) {
-          return Promise.resolve(createUnauthorizedOkResponse(error.message))
-        }
-        return Promise.reject(error)
-      })
+  if (eventType !== 'media.scrobble') {
+    const message = `Do not support event type ${eventType} yet. Exit`
+    logger.log(message)
+    return createOkResponse(message)
   }
-)
 
-export const kodi = guard<APIGatewayEvent>(
-  (rawEvent: APIGatewayEvent, logger: Logger) => {
-    const event: KodiEpisodeEvent | KodiMovieEvent = parseJson(rawEvent.body)
-    if (!event) {
-      logger.captureBreadcrumb({
-        message: 'Unable to parse json',
-        data: rawEvent.body as any,
-        category: 'parse'
-      })
-      logger.captureException(new Error('Unable to parse json'))
-      return createBadRequestResponse('Unable to parse body')
-    }
+  if (mediaType !== 'episode') {
+    const message = `Do not support media type ${mediaType} yet. Exit`
+    logger.log(message)
+    return createOkResponse(message)
+  }
 
-    if (!isKodiEpisode(event)) {
-      return createOkResponse(`Do not support movies yet. Exit`)
-    }
+  if (!episodeInfo) {
+    logger.captureException(new Error('episodeInfo is null'))
+    return createOkResponse(`Was not able to parse episode information`)
+  }
 
-    logger.log(`
+  if (!episodeInfo.episode || !episodeInfo.season) {
+    const message = `Sorry, episodehunter do not accept special episodes at the moment`
+    logger.log(message)
+    return createOkResponse(message)
+  }
+
+  return scrobbleEpisode(username, apikey, episodeInfo, context.awsRequestId)
+    .then(() => createOkResponse('OK'))
+    .catch(error => {
+      logger.log(error && error.message)
+      if (error instanceof UnauthorizedError) {
+        return Promise.resolve(createUnauthorizedOkResponse(error.message))
+      }
+      return Promise.reject(error)
+    })
+})
+
+export const kodi = guard<APIGatewayEvent>((rawEvent, logger, context) => {
+  const event: KodiEpisodeEvent | KodiMovieEvent = parseJson(rawEvent.body)
+  if (!event) {
+    const message = 'Unable to parse body'
+    logger.log(message)
+    logger.captureBreadcrumb({
+      message: message,
+      data: rawEvent.body as any,
+      category: 'parse'
+    })
+    logger.captureException(new Error(message))
+    return createBadRequestResponse(message)
+  }
+
+  if (!isKodiEpisode(event)) {
+    const message = 'Do not support movies yet. Exit'
+    logger.log(message)
+    return createOkResponse(message)
+  }
+
+  logger.log(`
       Going to scrobbler for kodi.
       Username: ${event.username}
       Apikey: ${event.apikey}
@@ -98,30 +100,35 @@ export const kodi = guard<APIGatewayEvent>(
       episode: ${event.episode}
     `)
 
-    if (event.event_type !== 'scrobble') {
-      return createOkResponse(
-        `Do not support event type ${event.event_type} yet. Exit`
-      )
-    }
+  if (event.event_type !== 'scrobble') {
+    const message = `Do not support event type ${event.event_type} yet. Exit`
+    logger.log(message)
+    return createOkResponse(message)
+  }
 
-    if (!event.tvdb_id || !event.episode || !event.season) {
-      return createOkResponse(
-        `Sorry, episodehunter do not accept special episodes at the moment`
-      )
-    }
+  if (!event.tvdb_id || !event.episode || !event.season) {
+    const message = `Sorry, episodehunter do not accept special episodes at the moment`
+    logger.log(message)
+    return createOkResponse(message)
+  }
 
-    return scrobbleEpisode(event.username, event.apikey, {
+  return scrobbleEpisode(
+    event.username,
+    event.apikey,
+    {
       episode: Number(event.episode),
       season: Number(event.season),
       id: Number(event.tvdb_id),
       provider: 'thetvdb'
+    },
+    context.awsRequestId
+  )
+    .then(() => createOkResponse('OK'))
+    .catch(error => {
+      logger.log(error && error.message)
+      if (error instanceof UnauthorizedError) {
+        return Promise.resolve(createUnauthorizedOkResponse(error.message))
+      }
+      return Promise.reject(error)
     })
-      .then(() => createOkResponse('OK'))
-      .catch(error => {
-        if (error instanceof UnauthorizedError) {
-          return Promise.resolve(createUnauthorizedOkResponse(error.message))
-        }
-        return Promise.reject(error)
-      })
-  }
-)
+})

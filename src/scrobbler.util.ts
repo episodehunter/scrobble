@@ -9,13 +9,13 @@ AWS.config.update({
 
 const lambda = new AWS.Lambda()
 
-function getUserId(username: string, apikey: string) {
+function getUserId(username: string, apikey: string, requestId: string) {
   if (!username || !apikey) {
     return Promise.reject(
       new UnauthorizedError('You must provide both username and apikey')
     )
   }
-  return redKeep.findUserId({ apikey, username }).then(userId => {
+  return redKeep.findUserId({ apikey, username }, requestId).then(userId => {
     if (!userId) {
       throw new UnauthorizedError('Can not find user with given credentials')
     }
@@ -44,8 +44,8 @@ function createShow(theTvDbId: number): Promise<number> {
     })
 }
 
-function getShowId(theTvDbId: number) {
-  return redKeep.findShowId(theTvDbId).then(showId => {
+function getShowId(theTvDbId: number, requestId: string) {
+  return redKeep.findShowId(theTvDbId, requestId).then(showId => {
     if (!showId) {
       return createShow(theTvDbId)
     }
@@ -56,21 +56,25 @@ function getShowId(theTvDbId: number) {
 export function scrobbleEpisode(
   username: string,
   apikey: string,
-  episodeInfo: EpisodeInformation
+  episodeInfo: EpisodeInformation,
+  requestId: string
 ) {
-  return getUserId(username, apikey)
+  return getUserId(username, apikey, requestId)
     .then(userId =>
-      getShowId(episodeInfo.id).then(showId => ({
+      getShowId(episodeInfo.id, requestId).then(showId => ({
         userId,
         showId
       }))
     )
     .then(({ userId, showId }) =>
-      redKeep.scrobbleEpisode({
-        episode: episodeInfo.episode,
-        season: episodeInfo.season,
-        showId,
-        userId
-      })
+      redKeep.scrobbleEpisode(
+        {
+          episode: episodeInfo.episode,
+          season: episodeInfo.season,
+          showId,
+          userId
+        },
+        requestId
+      )
     )
 }
