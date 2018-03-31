@@ -1,16 +1,22 @@
 all: deploy
 
-compile: clean
+compile:
 	npx tsc
+	cp package-lock.json env.yml package.json dist
+	cp _serverless.yml dist/serverless.yml
+	cd dist; npm install --production
 
 deployplex: compile
-	serverless deploy function -f plex
+	cd dist; serverless deploy function -f plex
 
 deploykodi: compile
-	serverless deploy function -f kodi
+	cd dist; serverless deploy function -f kodi
 
 deploy: compile
-	serverless deploy
+	cd dist; serverless deploy
+
+package: compile
+	cd dist; serverless package
 
 clean:
 	rm -r dist

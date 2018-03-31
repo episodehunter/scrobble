@@ -20,21 +20,24 @@ provider:
 
 package:
   include:
-    - dist/**
     - node_modules/**
   exclude:
-    - src/**
+    - test/**
     - env.yml
+    - .serverless/**
+    - package-lock.json
+    - package.json
+    - "*.js.map"
 
 functions:
   plex:
-    handler: dist/handler.plex
+    handler: handler.plex
     events:
       - http:
           path: plex
           method: post
   kodi:
-    handler: dist/handler.kodi
+    handler: handler.kodi
     events:
       - http:
           path: kodi
