@@ -50,8 +50,11 @@ export const plex = guard<APIGatewayEvent>((event, logger, context) => {
   }
 
   if (!episodeInfo) {
-    logger.captureException(new Error('episodeInfo is null'))
-    return createOkResponse(`Was not able to parse episode information`)
+    logger.log('Not valid episode info: ' + payload.Metadata.guid)
+    logger.captureException(
+      new Error('Not valid episode info: ' + payload.Metadata.guid)
+    )
+    return createOkResponse('Was not able to parse episode information')
   }
 
   if (!episodeInfo.episode || !episodeInfo.season) {
