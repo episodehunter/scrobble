@@ -22,15 +22,16 @@
   "author": "tjoskar <kontakta@oskarkarlsson.nu>",
   "license": "MIT",
   "devDependencies": {
-    "@types/aws-lambda": "0.0.34",
+    "@types/aws-lambda": "0.0.35",
     "@types/jest": "^22.2.2",
+    "@types/node": "^9.6.2",
+    "aws-sdk": "^2.222.1",
     "jest": "^22.4.3",
     "ts-jest": "^22.4.2",
-    "typescript": "^2.8.1",
-    "aws-sdk": "^2.217.1"
+    "typescript": "^2.8.1"
   },
   "dependencies": {
-    "@episodehunter/kingsguard": "^2.1.0",
+    "@episodehunter/kingsguard": "^2.1.1",
     "aws-lambda-multipart-parser": "^0.1.2",
     "graphql-request": "^1.5.1"
   },
