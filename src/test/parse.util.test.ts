@@ -1,9 +1,9 @@
 import { isKodiEpisode, parseJson } from '../parse.util'
 
-test('Is an kodi episode', () => {
+test('Is a kodi episode', () => {
   // Arrange
   const event = {
-    mediaType: 'episode'
+    media_type: 'episode'
   }
 
   // Act
@@ -13,10 +13,56 @@ test('Is an kodi episode', () => {
   expect(result).toBe(true)
 })
 
-test('Is not an kodi episode', () => {
+test('Is not a kodi episode', () => {
   // Arrange
   const event = {
-    mediaType: 'movie'
+    media_type: 'movie'
+  }
+
+  // Act
+  const result = isKodiEpisode(event as any)
+
+  // Assert
+  expect(result).toBe(false)
+})
+
+test('Is a kodi scrobble episode (bug in EHX)', () => {
+  // Arrange
+  const event = {
+    apikey: 'some-key',
+    duration: 49.91793619791667,
+    episode: 1,
+    event_type: 'scrobble',
+    media_type: 'movie',
+    percent: 100,
+    season: 6,
+    timestamp: 1531058461,
+    title: 'Game of Thrones',
+    tvdb_id: '121361',
+    username: 'some-username',
+    year: 2011
+  }
+
+  // Act
+  const result = isKodiEpisode(event as any)
+
+  // Assert
+  expect(result).toBe(true)
+})
+
+test('Is not a kodi scrobble episode', () => {
+  // Arrange
+  const event = {
+    apikey: 'some-key',
+    duration: 49.91793619791667,
+    event_type: 'play',
+    media_type: 'movie',
+    original_title: 'The Dark Knight',
+    percent: 0,
+    themoviedb_id: 'tt0468569',
+    timestamp: 1531060039,
+    username: 'some-username',
+    year: 2008
   }
 
   // Act

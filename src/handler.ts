@@ -89,7 +89,15 @@ export const kodi = guard<APIGatewayEvent>((rawEvent, logger, context) => {
   }
 
   if (!isKodiEpisode(event)) {
-    const message = 'Do not support movies yet. Exit'
+    const message = `Do not support movies yet. Exit. ${JSON.stringify(event)}`
+    logger.log(message)
+    return createOkResponse(message)
+  }
+
+  if (event.event_type !== 'scrobble') {
+    const message = `Do not support event type ${
+      event.event_type
+    } yet. Exit. ${JSON.stringify(event)}`
     logger.log(message)
     return createOkResponse(message)
   }
@@ -102,12 +110,6 @@ export const kodi = guard<APIGatewayEvent>((rawEvent, logger, context) => {
       season: ${event.season}
       episode: ${event.episode}
     `)
-
-  if (event.event_type !== 'scrobble') {
-    const message = `Do not support event type ${event.event_type} yet. Exit`
-    logger.log(message)
-    return createOkResponse(message)
-  }
 
   if (!event.tvdb_id || !event.episode || !event.season) {
     const message = `Sorry, episodehunter do not accept special episodes at the moment`
