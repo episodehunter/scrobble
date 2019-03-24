@@ -77,10 +77,8 @@ export const kodi = guard<APIGatewayEvent>((rawEvent, logger, context) => {
   if (!event) {
     const message = 'Unable to parse body'
     logger.log(message)
-    logger.captureBreadcrumb({
-      message: message,
-      data: rawEvent.body as any,
-      category: 'parse'
+    logger.captureBreadcrumb(message, 'parse', {
+      data: rawEvent.body
     })
     logger.captureException(new Error(message))
     return createBadRequestResponse(message)
