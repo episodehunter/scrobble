@@ -1,4 +1,5 @@
 import { GraphQLClient } from 'graphql-request'
+import { config } from './config'
 
 interface ScrobbleEpisodeInput {
   userId: number
@@ -12,8 +13,8 @@ interface FindUserInput {
   apikey: string
 }
 
-const client = new GraphQLClient(process.env.EH_RED_KEEP_URL, {
-  headers: { 'api-key': process.env.EH_RED_KEEP_API_KEY }
+const client = new GraphQLClient(config.ehRedKeepUrl, {
+  headers: { 'api-key': config.redKeepApiKey }
 })
 
 class RedKeepError extends Error {

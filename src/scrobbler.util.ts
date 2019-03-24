@@ -2,6 +2,7 @@ import * as AWS from 'aws-sdk'
 import { EpisodeInformation } from './parse.util'
 import { redKeep } from './red-keep.util'
 import { UnauthorizedError, UnableToAddShowError } from './custom-error'
+import { config } from './config'
 
 AWS.config.update({
   region: 'us-east-1'
@@ -26,7 +27,7 @@ function getUserId(username: string, apikey: string, requestId: string) {
 function createShow(theTvDbId: number): Promise<number> {
   return lambda
     .invoke({
-      FunctionName: process.env.ADD_SHOW_FUNCTION,
+      FunctionName: config.addShowFunctionName,
       Payload: JSON.stringify({ theTvDbId })
     })
     .promise()

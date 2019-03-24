@@ -1,8 +1,6 @@
 process.env.ADD_SHOW_FUNCTION = 'mock-add-show'
 process.env.EH_RED_KEEP_URL = 'http://localhost:4000/graphql'
 process.env.EH_RED_KEEP_TOKEN = 'no-token'
-process.env.EH_RAVEN_DSN = 'some-raven-dns'
-process.env.EH_RAVEN_PROJECT = 'some-raven-project'
 
 const handler = require('./dist/handler')
 

@@ -1,4 +1,4 @@
-import { guard, assertRequiredConfig } from '@episodehunter/kingsguard'
+import { createGuard } from '@episodehunter/kingsguard'
 import { APIGatewayEvent } from 'aws-lambda'
 import { parse } from 'aws-lambda-multipart-parser'
 import {
@@ -11,12 +11,9 @@ import { PlexEvent, KodiEpisodeEvent, KodiMovieEvent } from './types'
 import { plexEpisodeParse, parseJson, isKodiEpisode } from './parse.util'
 import { UnauthorizedError, UnableToAddShowError } from './custom-error'
 import { scrobbleEpisode } from './scrobbler.util'
+import { config } from './config'
 
-assertRequiredConfig(
-  'ADD_SHOW_FUNCTION',
-  'EH_RED_KEEP_URL',
-  'EH_RED_KEEP_API_KEY'
-)
+const guard = createGuard(config.sentryDsn, config.logdnaKey)
 
 export const plex = guard<APIGatewayEvent>((event, logger, context) => {
   const username = event.queryStringParameters.username
