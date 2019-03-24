@@ -4,11 +4,12 @@ import { parse } from 'aws-lambda-multipart-parser'
 import {
   createUnauthorizedOkResponse,
   createOkResponse,
-  createBadRequestResponse
+  createBadRequestResponse,
+  createNotFoundResponse
 } from './response'
 import { PlexEvent, KodiEpisodeEvent, KodiMovieEvent } from './types'
 import { plexEpisodeParse, parseJson, isKodiEpisode } from './parse.util'
-import { UnauthorizedError } from './custom-error'
+import { UnauthorizedError, UnableToAddShowError } from './custom-error'
 import { scrobbleEpisode } from './scrobbler.util'
 
 assertRequiredConfig(
@@ -130,10 +131,15 @@ export const kodi = guard<APIGatewayEvent>((rawEvent, logger, context) => {
   )
     .then(() => createOkResponse('OK'))
     .catch(error => {
-      logger.log(error && error.message)
       if (error instanceof UnauthorizedError) {
+        logger.log(error.message)
         return Promise.resolve(createUnauthorizedOkResponse(error.message))
+      } else if (error instanceof UnableToAddShowError) {
+        logger.log(error.message)
+        return Promise.resolve(createNotFoundResponse())
+      } else {
+        logger.log(error)
+        return Promise.reject(error)
       }
-      return Promise.reject(error)
     })
 })

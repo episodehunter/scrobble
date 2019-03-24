@@ -15,3 +15,12 @@ export const createUnauthorizedOkResponse = message => ({
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ message })
 })
+
+export const createNotFoundResponse = () => ({
+  statusCode: '404',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    message:
+      'Could not found show. Nor could we add it. Does it realy exist? Is it a tvdb show?'
+  })
+})

@@ -30,17 +30,18 @@ function createShow(theTvDbId: number): Promise<number> {
       Payload: JSON.stringify({ theTvDbId })
     })
     .promise()
-    .catch(error => {
-      return Promise.reject(
-        new UnableToAddShowError('UnableToAddShowError', error)
-      )
-    })
-    .then(result => {
-      const id = Number(result.Payload)
-      if (!id) {
-        throw new UnableToAddShowError(`Id is falsy: '${result}'`)
+    .then(snsResult => {
+      const result = JSON.parse(snsResult.Payload.toString())
+      const id = Number(result)
+      if (id) {
+        return id
+      } else if (result.error === 'not-found') {
+        throw new UnableToAddShowError(
+          `Unknown show: '${JSON.stringify(snsResult)}'`
+        )
+      } else {
+        throw new Error(JSON.stringify(snsResult))
       }
-      return id
     })
 }
 
