@@ -41,7 +41,7 @@ function createShow(theTvDbId: number): Promise<number> {
           `Unknown show: '${JSON.stringify(snsResult)}'`
         )
       } else {
-        throw new Error(JSON.stringify(snsResult))
+        throw new Error(`Could not parse response from RedKeep ${JSON.stringify(snsResult)}`)
       }
     })
 }
