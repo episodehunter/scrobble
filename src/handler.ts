@@ -61,7 +61,7 @@ export const plex = guard<APIGatewayEvent>((event, logger, context) => {
     return createOkResponse(message)
   }
 
-  return scrobbleEpisode(username, apikey, episodeInfo, context.awsRequestId)
+  return scrobbleEpisode(username, apikey, episodeInfo, logger, context.awsRequestId)
     .then(() => createOkResponse('OK'))
     .catch(error => {
       logger.log(error && error.message)
@@ -122,6 +122,7 @@ export const kodi = guard<APIGatewayEvent>((rawEvent, logger, context) => {
       id: Number(event.tvdb_id),
       provider: 'thetvdb'
     },
+    logger,
     context.awsRequestId
   )
     .then(() => createOkResponse('OK'))

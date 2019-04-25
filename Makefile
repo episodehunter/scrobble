@@ -15,8 +15,11 @@ deploykodi: compile
 deploy: compile
 	cd dist; serverless deploy
 
+deployfunctions: compile
+	cd dist; serverless deploy function -f kodi && serverless deploy function -f plex
+
 package: compile
 	cd dist; serverless package
 
 clean:
-	rm -r dist
+	if [ -d "dist" ]; then rm -r dist; fi

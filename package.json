@@ -22,6 +22,7 @@
   "author": "tjoskar <kontakta@oskarkarlsson.nu>",
   "license": "MIT",
   "devDependencies": {
+    "@episodehunter/types": "github:episodehunter/types",
     "@types/aws-lambda": "^8.10.23",
     "@types/jest": "^24.0.11",
     "@types/node": "^11.11.6",
