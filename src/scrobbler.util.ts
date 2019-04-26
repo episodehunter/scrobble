@@ -54,7 +54,7 @@ async function createShowDragonstone(theTvDbId: number, requestId: string): Prom
   const event: Message.UpdateShow.AddShow.Event = { theTvDbId, requestStack: [requestId] }
   return lambda
     .invoke({
-      FunctionName: config.addShowFunctionName,
+      FunctionName: config.addShowDragonstoneFunctionName,
       Payload: JSON.stringify(event)
     })
     .promise()
