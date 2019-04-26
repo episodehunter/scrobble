@@ -1,6 +1,6 @@
 all: deploy
 
-compile:
+compile: clean
 	npx tsc
 	cp package-lock.json env.yml package.json dist
 	cp _serverless.yml dist/serverless.yml
