@@ -39,7 +39,10 @@ function isKodiScrobleEpisode(
   )
 }
 
-export function parseJson(jsonStr: string) {
+export function parseJson(jsonStr: string | null) {
+  if (!jsonStr) {
+    return null
+  }
   try {
     return JSON.parse(jsonStr)
   } catch (error) {

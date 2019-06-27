@@ -16,8 +16,8 @@ import { config } from './config'
 const guard = createGuard(config.sentryDsn, config.logdnaKey)
 
 export const plex = guard<APIGatewayEvent>((event, logger, context) => {
-  const username = event.queryStringParameters.username
-  const apikey = event.queryStringParameters.key
+  const username = event.queryStringParameters && event.queryStringParameters.username
+  const apikey = event.queryStringParameters && event.queryStringParameters.key
   const payload: PlexEvent = JSON.parse(parse(event, true).payload)
   const eventType = payload.event
   const mediaType = payload.Metadata.type
@@ -59,6 +59,12 @@ export const plex = guard<APIGatewayEvent>((event, logger, context) => {
     const message = `Sorry, episodehunter do not accept special episodes at the moment`
     logger.log(message)
     return createOkResponse(message)
+  }
+
+  if (!username || !apikey) {
+    const message = `"username" and/or apikey is missing`
+    logger.log(message)
+    return Promise.resolve(createUnauthorizedOkResponse(message))
   }
 
   return scrobbleEpisode(username, apikey, episodeInfo, logger, context.awsRequestId)

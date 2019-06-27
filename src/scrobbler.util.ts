@@ -34,6 +34,11 @@ async function createShow(theTvDbId: number): Promise<number> {
     })
     .promise()
     .then(snsResult => {
+      if (!snsResult.Payload) {
+        throw new Error(
+          `Could not parse response from RedKeep. Payload is empty`
+        )
+      }
       const result = JSON.parse(snsResult.Payload.toString())
       const id = Number(result)
       if (id) {
@@ -61,6 +66,9 @@ async function createShowDragonstone(theTvDbId: number, requestId: string): Prom
     .then(snsResult => {
       if (snsResult.FunctionError) {
         throw new UnableToAddShowError(snsResult.FunctionError)
+      }
+      if (!snsResult.Payload) {
+        throw new Error(`Payload is empty: ${snsResult.LogResult}`)
       }
       const result: Message.UpdateShow.AddShow.Response = JSON.parse(snsResult.Payload.toString())
       return result.id

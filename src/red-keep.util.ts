@@ -56,7 +56,7 @@ export function scrobbleEpisode(
     .catch(handleError)
 }
 
-export function findUserId(userInput: FindUserInput, requestId: string) {
+export function findUserId(userInput: FindUserInput, requestId: string): Promise<number | null> {
   const query = `
     query FindUser($userInput: FindApiUserInput!) {
       findApiUser(user: $userInput) {
@@ -66,8 +66,8 @@ export function findUserId(userInput: FindUserInput, requestId: string) {
   `
   client.setHeader('request-id', requestId)
   return client
-    .request<{ findApiUser: { id: number | null } }>(query, { userInput })
-    .then(result => result.findApiUser.id)
+    .request<{ findApiUser: null | { id: number } }>(query, { userInput })
+    .then(result => (result.findApiUser && result.findApiUser.id))
     .catch(handleError)
 }
 
